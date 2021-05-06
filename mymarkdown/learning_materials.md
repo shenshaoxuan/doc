@@ -234,6 +234,8 @@ logger.critical('critical message')
 
 ```
 
+
+
 # GIT
 
 ## config
@@ -455,6 +457,8 @@ Git merge
 * git remote add \<shortname> \<url>: 给本地版本库添加一个远程仓库
 * git remote show origin:展示远程仓库详情，需要联网
 * git remote rename origin new_orign:远程仓库的重命名与移除
+* git remote update origin --prune 清理本地分支和远程同步
+* git remote set-url origin url:修改 git仓库地址
 
 ## gitflow
 
@@ -865,47 +869,47 @@ func main() {
 * 数组中元素类型是相同的
 
 ```go
-package main
+  package main
 
-import "fmt"
+  import "fmt"
 
-func main() {
-	//声明数组，说明数组的长度和数据的类型
-	var a1 [5]int
-	//数组的初始化，不初始化默认为0值
-	fmt.Println(a1)
-	//初始化方式1
-	a1 = [5]int{1, 2, 3, 4, 11}
-	fmt.Println(a1)
-	//初始化方式2,根据初始值，自动推断长度
-	a2 := [...]int{1, 2, 3, 4, 11}
-	fmt.Println(a2)
-	//初始化方式3，指定索引赋值，不赋值则为0
-	a3 := [3]int{0: 1, 2: 13}
-	fmt.Println(a3)
+  func main() {
+    //声明数组，说明数组的长度和数据的类型
+    var a1 [5]int
+    //数组的初始化，不初始化默认为0值
+    fmt.Println(a1)
+    //初始化方式1
+    a1 = [5]int{1, 2, 3, 4, 11}
+    fmt.Println(a1)
+    //初始化方式2,根据初始值，自动推断长度
+    a2 := [...]int{1, 2, 3, 4, 11}
+    fmt.Println(a2)
+    //初始化方式3，指定索引赋值，不赋值则为0
+    a3 := [3]int{0: 1, 2: 13}
+    fmt.Println(a3)
 
-	//不能超过索引范围
-	//a1[10] = 1
-	//修改数组
-	a3[1] = 11
-	fmt.Println(a3)
+    //不能超过索引范围
+    //a1[10] = 1
+    //修改数组
+    a3[1] = 11
+    fmt.Println(a3)
 
-	//多维数组的两种声明方式
-	a4 := [...][2]int{[2]int{1, 2}, [2]int{3, 4}}
-	fmt.Println(a4)
-	a5 := [...][2]int{{1, 2}, {3, 4}}
-	fmt.Println(a5)
+    //多维数组的两种声明方式
+    a4 := [...][2]int{[2]int{1, 2}, [2]int{3, 4}}
+    fmt.Println(a4)
+    a5 := [...][2]int{{1, 2}, {3, 4}}
+    fmt.Println(a5)
 
-	//数组不能改变长度，通过函数传入的数组是数组的副本，如果需要修改原数组，需要用到指针，用的slice类型
-	//测试数据是否会改变呢，答案是不会，传递的是副本，数组是值类型，不是引用类型
-	test1(a3)
-	fmt.Println("函数运行完成后", a3)
-}
+    //数组不能改变长度，通过函数传入的数组是数组的副本，如果需要修改原数组，需要用到指针，用的slice类型
+    //测试数据是否会改变呢，答案是不会，传递的是副本，数组是值类型，不是引用类型
+    test1(a3)
+    fmt.Println("函数运行完成后", a3)
+  }
 
-func test1(aaa [3]int) {
-	aaa[0] = 100
-	fmt.Println("函数内改变数组", aaa)
-}
+  func test1(aaa [3]int) {
+    aaa[0] = 100
+    fmt.Println("函数内改变数组", aaa)
+  }
 ```
 
 ```go
@@ -1549,8 +1553,10 @@ func f1() {
 
 func f2() {
 	//如果是刚启动service就发生了致命错误，就释放掉数据库连接
-	defer func(){
-		fmt.Println("释放数据库连接")
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("释放数据库连接")
+		}
 	}()
 	panic("f2出现了严重的错误") //程序崩溃退出
 }
@@ -1558,7 +1564,6 @@ func f2() {
 func f3() {
 	fmt.Println("f3")
 }
-
 ```
 
 ### 递归
@@ -1698,6 +1703,36 @@ func main() {
 * 当需要对原对象进行修改
 * 当拷贝代价比较大时
 * 保证一致性，如果有方法使用指针接收，那么其他方法也使用指针
+
+```go
+package main
+
+import (
+	"fmt"
+)
+
+type person struct {
+	name string
+	city string
+	age  int8
+}
+
+func main() {
+	//返回结构体的指针,go中结构体指针也可以使用.来操作数据
+	var p1 = new(person)
+	p1.name = "ssx"
+	fmt.Println(p1.name)
+	fmt.Println(p1.age)
+	fmt.Println(p1)
+	
+	//在go中直接使用&操作符，结果就是一个结构体指针
+	p2 := &person{
+		name: "ssx1",
+		age: 15,
+	}
+	fmt.Println(p2)
+}
+```
 
 #### 任意类型添加方法
 
@@ -1864,7 +1899,30 @@ func main() {
 
 
 
+## go mod
 
+### 写入环境变量
+
+```bash
+go env -w GOBIN=/Users/shenshaoxuan/go/bin //创建目录存放
+go env -w GO111MODULE=on //开启后只会使用modules，不会到gopath下查找包
+go env -w GOPROXY=https://goproxy.cn,direct // 使用七牛云的
+# 环境变量写入到GOENV
+```
+
+项目运行后，go mod会自动查找依赖下载
+
+此时查看
+
+* go.mod，会发现新增了require，自动拉取最新的发布tag，如果没有则拉取最新commit
+* go.sum,记录依赖树
+
+到$gopath/pkg/mod下可以查看到依赖的包
+
+* go mod download：下载所有依赖
+* go mod tidy：移除不需要的依赖包
+* go mod init：初始化 go.mod
+* go mod vender：将依赖复制到 vendor 下
 
 
 
@@ -2150,11 +2208,402 @@ grpc_server = grpc.server(
 
 ## 多进程启动python grpc服务
 
+# gRPC Testing
+
+
+
 
 
 
 
 # Flask
+
+
+
+# 测试用例(unittest)
+
+[官方文档](https://docs.python.org/3/library/unittest.html)
+
+## 介绍
+
+#### 测试fixture
+
+测试fixture表示执行一个或多个测试需要的准备工作或者事后清除工作，例如连接数据库、目录或启动服务器进程。
+
+#### 测试用例
+
+测试用例是单独的测试单元。它检查特定输入集合的特定响应。unittest提供了一个基类TestCase，可以用来创建新的测试用例。
+
+#### 测试套件
+
+测试套件是测试用例、测试套件或两者的集合。它用于聚合应该一起执行的测试。
+
+#### 测试运行器
+
+测试运行程序是编排测试执行并向用户提供结果的组件。运行程序可以使用图形界面、文本界面或返回一个特殊值来指示执行测试的结果。
+
+## 基本示例
+
+unittest模块为构造和运行测试提供了一套丰富的工具。本节演示了一小部分工具就足以满足大多数用户的需求。
+
+下面是一个用于测试三个字符串方法的简短脚本:
+
+```python
+import unittest
+
+class TestStringMethods(unittest.TestCase):
+
+    def test_upper(self):
+        self.assertEqual('foo'.upper(), 'FOO')
+
+    def test_isupper(self):
+        self.assertTrue('FOO'.isupper())
+        self.assertFalse('Foo'.isupper())
+
+    def test_split(self):
+        s = 'hello world'
+        self.assertEqual(s.split(), ['hello', 'world'])
+        # check that s.split fails when the separator is not a string
+        with self.assertRaises(TypeError):
+            s.split(2)
+
+if __name__ == '__main__':
+    unittest.main()
+```
+
+* 一个测试用例是通过子类unittest.TestCase来创建的
+* 测试方法名称以字母test开头的方法定义， 此命名约定通知测试运行程序哪些方法表示测试
+* 检查结果，以便测试运行程序可以累积所有测试结果并生成报告。
+  * assertEqual()来检查预期的结果
+  * assertFalse()来验证一个条件
+  * assertRaises()来验证是否引发了特定的异常
+
+* 最后一个块显示了一种运行测试的简单方法。unittest.main()为测试脚本提供了一个命令行接口
+
+## 命令行接口
+
+unittest模块可以从命令行使用来运行模块、类甚至单个测试方法的测试:
+
+```shell
+python -m unittest test_module1 test_module2 # 运行模块
+python -m unittest test_module.TestClass  # 运行测试类
+python -m unittest test_module.TestClass.test_method # 运行测试方法
+```
+
+* 您可以传入一个包含模块名、完全限定类名或方法名的任意组合的列表
+* 测试模块也可以通过文件路径指定:python -m unittest test /test_something.py
+
+你可以通过传递-v标志来运行更详细(更详细)的测试
+
+## 测试发现
+
+3.2新版功能。
+
+Unittest支持简单的测试发现。为了与测试发现兼容，所有的测试文件都必须是可以从项目的顶级目录导入的模块或包(包括命名空间包)(这意味着它们的文件名必须是有效的标识符)。
+
+测试发现在TestLoader.discover()中实现，但也可以从命令行使用。基本的命令行用法是:
+
+```shell
+cd project_directory
+python -m unittest discover
+```
+
+
+说明作为快捷方式，python -m unittest等价于python -m unittest discover。如果要向测试发现传递参数，则必须显式地使用discover子命令。
+
+## 组织测试代码
+
+单元测试的基本构建块是测试用例——必须设置并检查正确性的单个场景。在unittest中，测试用例由unittest表示。TestCase实例。要制作自己的测试用例，必须编写TestCase的子类或使用FunctionTestCase。
+
+TestCase实例的测试代码应该是完全自包含的，这样它可以独立运行，也可以与任何数量的其他测试用例任意组合运行。
+
+最简单的TestCase子类将简单地实现一个测试方法(即一个名称以test开头的方法)，以便执行特定的测试代码:
+
+```python
+import unittest
+
+class DefaultWidgetSizeTestCase(unittest.TestCase):
+    def test_default_widget_size(self):
+        widget = Widget('The widget')
+        self.assertEqual(widget.size(), (50, 50))
+```
+
+测试可以是很多的，他们的设置可以是重复的。幸运的是，我们可以通过实现一个名为setUp()的方法来分解设置代码，测试框架会自动调用我们运行的每个测试:
+
+```python
+import unittest
+
+class WidgetTestCase(unittest.TestCase):
+    def setUp(self):
+        self.widget = Widget('The widget')
+
+    def test_default_widget_size(self):
+        self.assertEqual(self.widget.size(), (50,50),
+                         'incorrect default size')
+
+    def test_widget_resize(self):
+        self.widget.resize(100,150)
+        self.assertEqual(self.widget.size(), (100,150),
+                         'wrong size after resize')
+
+```
+
+> 注意，各种测试的运行顺序是根据字符串的内置顺序对测试方法名进行排序来确定的。
+> 如果setUp()方法在测试运行时抛出异常，框架将认为测试发生了错误，测试方法将不会被执行。
+
+
+
+类似地，我们可以提供一个tearDown()方法，在测试方法运行后进行整理:
+
+如果setUp()成功，无论测试方法成功与否，都会运行tearDown()。
+
+**注意：执行每个测试方法，都会运行一遍setUp()、tearDown()**
+
+
+
+建议您使用TestCase实现根据测试的特性将测试分组在一起。unittest为此提供了一种机制:测试套件，由unittest的TestSuite类表示。在大多数情况下，调用unittest.main()会做正确的事情，并为你收集所有模块的测试用例并执行它们。
+
+然而，如果你想自定义你的测试套件的构建，你可以自己做:
+
+```python
+def suite():
+    suite = unittest.TestSuite()
+    suite.addTest(WidgetTestCase('test_default_widget_size'))
+    suite.addTest(WidgetTestCase('test_widget_resize'))
+    return suite
+
+if __name__ == '__main__':
+    runner = unittest.TextTestRunner()
+    runner.run(suite())
+```
+
+请将模块代码和测试代码分开，将测试代码放在单独的模块中有几个好处，比如test_widget.py:
+
+* 测试模块可以从命令行独立运行。
+* 测试代码可以更容易地从发布代码中分离出来
+* 经过测试的代码可以更容易地进行重构。
+
+## 跳过测试和预期失败
+
+Unittest支持跳过单个测试方法，甚至跳过整个测试类。此外，它还支持将测试标记为“预期失败”，这是一个被破坏并将失败的测试，但不应该被算作测试结果上的失败。
+
+跳过测试只需使用skip()装饰器或其条件变体之一，在setUp()或测试方法中调用TestCase.skipTest()，或直接引发SkipTest。
+
+#### 基本示例:
+
+```python
+import unittest
+import sys
+from mymodel import Widget
+
+
+class MyTestCase(unittest.TestCase):
+
+    # 一定会跳过的测试
+    @unittest.skip("demonstrating skipping")
+    def test_nothing(self):
+        self.fail("shouldn't happen")
+
+    # 符合某种条件时跳过，如果条件为true，则返回第二字段，并跳过
+    @unittest.skipIf(Widget.__version__ < (1, 3), "not supported in this library version")
+    def test_format(self):
+        # Tests that work for only a certain version of the library.
+        print('test_formatxxx')
+
+    # 不符合某种条件时跳过，如果符合执行 
+    @unittest.skipUnless(sys.platform.startswith("win"), "requires Windows")
+    def test_windows_support(self):
+        # windows specific testing code
+        print('test_windows_support')
+    
+    # 某种条件自行判断是否跳过
+    def test_maybe_skipped(self):
+        if not external_resource_available():
+            self.skipTest("external resource not available")
+        # test code that depends on the external resource
+        pass
+
+```
+
+#### 跳过class
+
+```python
+@unittest.skip("showing class skipping")
+class MySkippedTestCase(unittest.TestCase):
+    def test_not_run(self):
+        pass
+```
+
+TestCase.setUp()也可以跳过测试。当需要设置的资源不可用时，这是很有用的。
+
+#### 预期失败使用expectedFailure()装饰器
+
+```python
+class ExpectedFailureTestCase(unittest.TestCase):
+    @unittest.expectedFailure
+    def test_fail(self):
+        self.assertEqual(1, 0, "broken")
+```
+
+#### 通过创建一个decorator，在需要跳过测试时调用skip()，可以很容易地滚动您自己的跳过decorator。这个装饰器跳过测试，除非传递的对象有特定的属性:
+
+```python
+def skipUnlessHasattr(obj, attr):
+    if hasattr(obj, attr):
+        return lambda func: func
+    return unittest.skip("{!r} doesn't have {!r}".format(obj, attr))
+```
+
+```以下装饰器和异常实现了跳过测试和预期的失败:
+@unittest.skip(原因)
+无条件地跳过修饰测试。理由应该描述为什么要跳过测试。
+
+@unittest。skipIf(条件、原因)
+如果condition为真，跳过修饰测试。
+
+@unittest。skipUnless(条件、原因)
+除非condition为真，否则跳过修饰测试。
+
+@unittest.expectedFailure
+将测试标记为预期失败或错误。如果测试失败或出错，则认为测试成功。如果测试通过，将被视为失败。
+
+异常unittest.SkipTest(原因)
+抛出此异常以跳过测试。
+
+通常，你可以使用TestCase.skipTest()或其中一个跳过装饰器，而不是直接引发这个。
+
+跳过的测试将不会运行setUp()或tearDown()。被跳过的类将不会运行setUpClass()或tearDownClass()。被跳过的模块将不会运行setUpModule()或tearDownModule()。
+
+```
+
+## 使用子测试区分测试迭代
+
+当测试之间有非常小的差异时，例如一些参数，unittest允许您使用subTest()上下文管理器在测试方法体中区分它们。
+
+例如，以下测试:
+
+```python
+class NumbersTest(unittest.TestCase):
+
+    def test_even(self):
+        """
+        Test that numbers between 0 and 5 are all even.
+        """
+        for i in range(0, 6):
+            with self.subTest(i=i):
+                self.assertEqual(i % 2, 0)
+
+```
+
+如果不使用子测试，执行将在第一次失败后停止，错误将不太容易诊断，因为i的值不会显示:
+
+## 类和函数
+
+测试用例
+类unittest.TestCase (methodName =“矮子”)
+TestCase类的实例代表了unittest范围内的逻辑测试单元。该类被用作基类，具体的子类实现特定的测试。该类实现了测试运行程序所需的接口，以允许它驱动测试，以及测试代码可以用来检查和报告各种失败的方法。
+
+TestCase的每个实例都将运行一个基本方法:名为methodName的方法。在大多数使用TestCase的情况下，您既不会更改methodName，也不会重新实现默认的runTest()方法。
+
+在3.2版更改:TestCase可以在不提供methodName的情况下成功实例化。这使得在交互式解释器中试验TestCase更加容易。
+
+TestCase实例提供了三组方法:一组用于运行测试，另一组用于测试实现检查条件并报告失败，还有一些查询方法允许收集关于测试本身的信息。
+
+第一组中的方法(运行测试)是:
+
+设置()
+方法来准备测试夹具。这在调用test方法之前被立即调用;除了AssertionError或SkipTest之外，此方法引发的任何异常都将被视为错误，而不是测试失败。默认的实现不做任何事情。
+
+tearDown ()
+方法在测试方法被调用后立即调用，并记录结果。即使测试方法引发了异常，也会调用它，因此子类中的实现可能需要特别小心检查内部状态。除了AssertionError或SkipTest之外，由该方法引发的任何异常都将被视为附加错误，而不是测试失败(因此增加了报告的错误总数)。只有在setUp()成功时，才会调用这个方法，而不管测试方法的结果如何。默认的实现不做任何事情。
+
+setUpClass ()
+在运行单个类中的测试之前调用的类方法。setUpClass被调用时，类作为唯一的参数，并且必须装饰为一个classmethod():
+
+
+
+# docker
+
+* 创建项目
+* 创建基础镜像
+  * 安装python环境
+  * 或者将依赖全部打入基础镜像
+* 创建dockerfile
+  * 声明基础镜像
+  * 拷贝目录到镜像
+  * 启动命令
+* 启动portainner，用来查看容器日志
+* 创建docker-compose，启动各组件 
+* 启动测试，能否正常访问
+
+
+
+```
+version: '3'
+services:
+  web:
+    image: 'gitlab/gitlab-ee:latest'
+    restart: always
+    hostname: 'gitlab.example.com'
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://localhost:8929'
+        gitlab_rails['gitlab_shell_ssh_port'] = 2224
+    ports:
+      - '8929:8929'
+      - '2224:22'
+    volumes:
+      - '$GITLAB_HOME/config:/etc/gitlab'
+      - '$GITLAB_HOME/logs:/var/log/gitlab'
+      - '$GITLAB_HOME/data:/var/opt/gitlab'
+    deploy:
+      resources:
+        limits:
+          memory: 4GB
+```
+
+docker-compose --compatibility up -d
+
+# gunicorn
+
+## 基本示例
+
+创建myapp.py
+
+```python
+def app(environ, start_response):
+    """Simplest possible application object"""
+    data = b'Hello, World!\n'
+    status = '200 OK'
+    response_headers = [
+        ('Content-type', 'text/plain'),
+        ('Content-Length', str(len(data)))
+    ]
+    start_response(status, response_headers)
+    return iter([data])
+```
+
+启动命令：gunicorn --workers=2 myapp:app
+
+需要将app对象传递给gunicorn
+
+## 命令行参数
+
+-c :指定配置文件
+
+-b：可指定主机和端口
+
+-w：指定进程数，每个cpu核心指定2-4的worker比较合适
+
+-k：要运行的工作进程的类型 ， sync, eventlet, gevent, tornado, gthread。同步是默认值。
+
+--paste：可以指定一个ini配置文件启动
+
+
+
+
+
+
 
 
 
