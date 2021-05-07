@@ -54,6 +54,8 @@ logging.error('And non-ASCII stuff, too, like Øresund and Malmö')
 logging.basicConfig(filename='example.log', filemode='w', level=logging.DEBUG)
 ```
 
+**在生产环境中，只要项目跑起来设置好级别后，后续可直接使用logging打日志**
+
 ### 4. 在多个模块中使用日志
 
 ```python
@@ -2522,47 +2524,7 @@ setUpClass ()
 
 
 
-# docker
 
-* 创建项目
-* 创建基础镜像
-  * 安装python环境
-  * 或者将依赖全部打入基础镜像
-* 创建dockerfile
-  * 声明基础镜像
-  * 拷贝目录到镜像
-  * 启动命令
-* 启动portainner，用来查看容器日志
-* 创建docker-compose，启动各组件 
-* 启动测试，能否正常访问
-
-
-
-```
-version: '3'
-services:
-  web:
-    image: 'gitlab/gitlab-ee:latest'
-    restart: always
-    hostname: 'gitlab.example.com'
-    environment:
-      GITLAB_OMNIBUS_CONFIG: |
-        external_url 'http://localhost:8929'
-        gitlab_rails['gitlab_shell_ssh_port'] = 2224
-    ports:
-      - '8929:8929'
-      - '2224:22'
-    volumes:
-      - '$GITLAB_HOME/config:/etc/gitlab'
-      - '$GITLAB_HOME/logs:/var/log/gitlab'
-      - '$GITLAB_HOME/data:/var/opt/gitlab'
-    deploy:
-      resources:
-        limits:
-          memory: 4GB
-```
-
-docker-compose --compatibility up -d
 
 # gunicorn
 
@@ -2598,11 +2560,6 @@ def app(environ, start_response):
 -k：要运行的工作进程的类型 ， sync, eventlet, gevent, tornado, gthread。同步是默认值。
 
 --paste：可以指定一个ini配置文件启动
-
-
-
-
-
 
 
 
